@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -21,6 +22,7 @@ public class BlockElementTest {
     BlockElement div;
     BlockElement span;
     BlockElement p;
+    BlockElement adr;
     String emmet1;
 
     @BeforeEach
@@ -35,6 +37,7 @@ public class BlockElementTest {
         div = new BlockElement("div");
         span = new BlockElement("span");
         p = new BlockElement("p");
+        adr = new BlockElement("adr");
         emmet1 = "html.clasa$.classb--$.classc-$.classd-$#wdsd-$[diesable]{Hello}>diversao.a#e>span.clasa.classb{Hola}+div.$*1>p#id^^^^^^^pai>q.$#$*10";
     }
 
@@ -244,5 +247,17 @@ public class BlockElementTest {
         html.addEventListener("removeFirstChild",a );
         html.triggerEvent("removeFirstChild");
         assertTrue(html.getChildren().indexOf(div)<0);
+    }
+
+    @Test
+    void testAbreviations() throws IOException {
+        document.readAbbFile("D:\\UpSkill\\GitHub\\DOM-and-Emmet\\abbreviations.txt");
+        document.addEmmet("adr+art");
+        document1.readAbbFile("D:\\UpSkill\\GitHub\\DOM-and-Emmet\\abbreviations.txt");
+        document1.appendChild(adr);
+        assertTrue(document.getChildren().size()>=0);
+        assertEquals(((BlockElement) document.firstChild()).getName(),"address");
+        assertEquals(((BlockElement) document.lastChild()).getName(),"article");
+        assertEquals(((BlockElement) document1.lastChild()).getName(),"address");
     }
 }

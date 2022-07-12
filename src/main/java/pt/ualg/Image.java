@@ -15,7 +15,7 @@ public class Image extends BlockElement {
             setPersonalizedAt("");
         }
         StringBuilder str = new StringBuilder();
-        String start =  "<" + getName() + getId() + classToString() + getPersonalizedAt() + ">";
+        String start =  "<" + getName() + getId() + classToString() + getPersonalizedAt() + "/>";
         String close =  "";
         str.append(getIDENT().repeat(indentation) + start);
         if(getChildren().isEmpty()) {

@@ -59,6 +59,10 @@ public class BlockElement extends Element implements IBlockElement<BlockElement,
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public Map<String, String> getAbbreviations() {
         return abbreviations;
     }
@@ -128,6 +132,12 @@ public class BlockElement extends Element implements IBlockElement<BlockElement,
     public void appendChild(Element e) {
         e.setParent(this);
         children.add(e);
+        if(parentNode() != null && parentNode().getAbbreviations()!=null) {
+            this.abbreviations = parentNode().getAbbreviations();
+        }
+        if (e instanceof BlockElement && this.abbreviations.containsKey(((BlockElement) e).getName())) {
+            ((BlockElement) e).setName(abbreviations.get(((BlockElement) e).getName()));
+        }
     }
 
     @Override
