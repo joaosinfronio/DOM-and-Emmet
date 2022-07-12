@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -19,8 +20,8 @@ public class BlockElementTest {
     BlockElement html;
     BlockElement div;
     BlockElement span;
+    BlockElement p;
     String emmet1;
-
 
     @BeforeEach
     void setUp()  {
@@ -33,6 +34,7 @@ public class BlockElementTest {
         html = new BlockElement("html");
         div = new BlockElement("div");
         span = new BlockElement("span");
+        p = new BlockElement("p");
         emmet1 = "html.clasa$.classb--$.classc-$.classd-$#wdsd-$[diesable]{Hello}>diversao.a#e>span.clasa.classb{Hola}+div.$*1>p#id^^^^^^^pai>q.$#$*10";
     }
 
@@ -41,6 +43,7 @@ public class BlockElementTest {
         assertTrue(html.classList().isEmpty());
         html.addClass("test");
         assertTrue(html.classList().indexOf("test")!=-1);
+        assertEquals(" class = \"test\"", html.classToString());
     }
 
     @Test
@@ -102,14 +105,16 @@ public class BlockElementTest {
                 <q id = "10" class = "10"></q>
             </pai>
          */
-
         assertEquals(a,document4.toString());
-
     }
 
     @Test
     void testAddEventListener() {
-
+        html.appendChild(div);
+        assertTrue(html.getChildren().indexOf(div)>=0);
+        Consumer<BlockElement> a = (n) -> {n.removeChild(n.firstChild());;};
+        html.addEventListener("removeFirstChild",a );
+        assertTrue(html.getEvents().get("removeFirstChild").indexOf(a) > -1);
     }
 
     @Test
@@ -122,7 +127,9 @@ public class BlockElementTest {
 
     @Test
     void testAppendChildren() {
-        document.addEmmet("html>div");
+        document.appendChild(div);
+        document.appendChild(html);
+        assertTrue(document.getChildren().get(0)==div && document.getChildren().get(1)==html);
         document1.appendChildren(document.getChildren());
         assertEquals(document1.getChildren(), document.getChildren());
     }
@@ -136,13 +143,6 @@ public class BlockElementTest {
         assertEquals(html.classList(),list );
         assertTrue(html.classList().size() == list.size());
         assertTrue(list.toString().equals(html.classList().toString()));
-
-    }
-
-    @Test
-    void testClassToString() {
-        html.addEmmet("div.classa.classb");
-        assertEquals(((BlockElement) html.getChildren().get(0)).classToString(), " class = \"classa classb\"");
     }
 
     @Test
@@ -153,18 +153,25 @@ public class BlockElementTest {
     }
 
     @Test
-    void testGetChildren() {
-
-    }
-
-    @Test
     void testGetElementById() {
-
+        document.appendChild(html);
+        document.appendChild(div);
+        document.appendChild(span);
+        span.setId("id");
+        assertEquals(document.getElementById("id"), span);
     }
 
     @Test
     void testGetElementsByClassName() {
-
+        document.appendChild(html);
+        document.appendChild(div);
+        document.appendChild(span);
+        document.appendChild(p);
+        p.addClass("class");
+        span.addClass("class");
+        assertTrue(document.getElementsByClassName("class").contains(p));
+        assertTrue(document.getElementsByClassName("class").contains(span));
+        assertFalse(document.getElementsByClassName("class").contains(div));
     }
 
     @Test
@@ -182,7 +189,6 @@ public class BlockElementTest {
         document.appendChild(span);
         assertEquals(div, html.nextSibling());
         assertEquals(null, span.nextSibling());
-
     }
 
     @Test
@@ -202,21 +208,41 @@ public class BlockElementTest {
         assertFalse(html.parentNode()==document);
         assertTrue(html.parentNode()==null);
         assertTrue(document.getChildren().isEmpty());
-
     }
 
     @Test
     void testReplaceChild() {
-
+        document.appendChild(html);
+        assertTrue(html.parentNode()==document);
+        assertTrue(div.parentNode()==null);
+        assertTrue(document.getChildren().indexOf(html)!=-1);
+        assertTrue(document.getChildren().indexOf(div)==-1);
+        document.replaceChild(html, div);
+        assertTrue(html.parentNode()==null);
+        assertTrue(div.parentNode()==document);
+        assertTrue(document.getChildren().indexOf(html)==-1);
+        assertTrue(document.getChildren().indexOf(div)!=-1);
     }
 
     @Test
     void testToStringIndented() {
-
+        document.addEmmet("html>div>span");
+        String a =
+        "<html>\n"
+        + document.getIDENT()+"<div>\n"
+        + document.getIDENT()+document.getIDENT()+"<span>"+"</span>\n"
+        + document.getIDENT()+"</div>\n"
+        + "</html>\n";
+        assertEquals(a, document.toStringIndented(0));
     }
 
     @Test
     void testTriggerEvent() {
-
+        html.appendChild(div);
+        assertTrue(html.getChildren().indexOf(div)>=0);
+        Consumer<BlockElement> a = (n) -> {n.removeChild(n.firstChild());;};
+        html.addEventListener("removeFirstChild",a );
+        html.triggerEvent("removeFirstChild");
+        assertTrue(html.getChildren().indexOf(div)<0);
     }
 }

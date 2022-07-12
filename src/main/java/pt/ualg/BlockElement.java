@@ -1,16 +1,21 @@
 package pt.ualg;
+
+import java.io.BufferedReader;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * Represents a BlockElement that extends the {@link Element} and implements {@link IBlockElement},
- * can have an id, a name, a Collection od classes, a personalized Attribute, a Collection of events, a Collection of abbreviations and a Collection of children.
+ * can have an id, a name, a Collection of classes, a personalized attribute, a Collection of events for this {@link BlockElement}, a Collection of abbreviations and a Collection of children.
  */
 public class BlockElement extends Element implements IBlockElement<BlockElement,Element> {
     private String id;
@@ -22,13 +27,14 @@ public class BlockElement extends Element implements IBlockElement<BlockElement,
     private Map<String,String> abbreviations = new HashMap<String, String>();
 
     /**
-     * Creates a new block element with the given name and description.
+     * Creates a new block element with the given name.
      */
     public BlockElement(String name) {
         if(abbreviations.containsKey(name)) {
             this.name = abbreviations.get(name);
+        }else {
+         this.name = name;
         }
-        this.name = name;
     }
 
     public String getId() {
@@ -43,9 +49,8 @@ public class BlockElement extends Element implements IBlockElement<BlockElement,
     }
 
     private String idToString() {
-        if (id == null || id.equals("")) {
-            id ="";
-            return id;
+        if (getId().equals("")) {
+            return getId();
         }
         return " id = \"" + id + "\"";
     }
@@ -54,6 +59,23 @@ public class BlockElement extends Element implements IBlockElement<BlockElement,
         return name;
     }
 
+    public Map<String, String> getAbbreviations() {
+        return abbreviations;
+    }
+
+    @Override
+    public List<Element> getChildren() {
+        return children;
+    }
+
+    public Map<String, List<Consumer<BlockElement>>> getEvents() {
+        return events;
+    }
+
+    /**
+     * Get´s the personalized attribute string representations if exists.
+     * @return The attribute string representation
+     */
     public String getPersonalizedAt() {
         if (personalizedAt == null || personalizedAt== "") {
             personalizedAt = "";
@@ -87,7 +109,6 @@ public class BlockElement extends Element implements IBlockElement<BlockElement,
     @Override
     public Collection<BlockElement> getElementsByClassName(String name) {
         List<BlockElement> elements = new ArrayList<BlockElement>();
-
         if(!(classList.isEmpty())) {
             if(this.classList().contains(name)) {
                 elements.add(this);
@@ -114,11 +135,6 @@ public class BlockElement extends Element implements IBlockElement<BlockElement,
         for (Element child: c) {
             ((BlockElement) this).appendChild(child);
         }
-    }
-
-    @Override
-    public List<Element> getChildren() {
-        return children;
     }
 
     @Override
@@ -198,16 +214,19 @@ public class BlockElement extends Element implements IBlockElement<BlockElement,
             return "";
         }
         for(String className : classList) {
-            if(classList.indexOf(className) == classList.size()-1) {
-            str.append(className);
-            break;
-            }
+            if(classList.indexOf(className) != classList.size()-1) {
             str.append(className +" ");
+            }else{
+              str.append(className +"\"");
+            }
         }
-        str.append("\"");
         return str.toString();
     }
 
+    /**
+     * Adds a class to the class list wiht the given name
+     * @param className
+     */
     public void addClass(String className) {
         classList.add(className);
     }
@@ -232,36 +251,63 @@ public class BlockElement extends Element implements IBlockElement<BlockElement,
         }
     }
 
-    @Override
-    public void addEmmet(String emmet) {
-        String[] parts = emmet.split("(?=\\+)|(?=>)|(?=\\^+)",2);
-        List<BlockElement> blockElements = stringToElement(parts[0]);
-        for(BlockElement blockElement : blockElements) {
-            this.appendChild(blockElement);
-            if(parts.length > 1 ) {
-                if(parts[1].charAt(0) == '>') {
-                    blockElement.addEmmet(parts[1].substring(1));
-                }
-                if(parts[1].charAt(0) == '+') {
-                    this.addEmmet(parts[1].substring(1));
-                }
-                if(parts[1].charAt(0) == '^') {
-                Element a = this;
-                for(char c : parts[1].toCharArray()) {
-                        if(c == '^') {
-                            if(a.parentNode() != null) {
-                                a = a.parentNode();
-                            }
-                            parts[1] = parts[1].substring(1);
-                        }
-                    }
-                ((BlockElement) a).addEmmet(parts[1].substring(0));
-                }
+    /**
+     * Reads a file containing a list of abbreviations
+     * @param file
+     * @throws IOException
+     */
+    public void readAbbFile(String file) throws IOException {
+        File abb = new File(file);
+        try (BufferedReader br = new BufferedReader(new FileReader(abb))) {
+            String st;
+            while((st = br.readLine()) != null) {
+                String [] parts = st.split(",");
+                abbreviations.put(parts[0], parts[1]);
+            }
+            if(abbreviations.containsKey(this.name)) {
+                this.name=abbreviations.get(this.name);
             }
         }
     }
 
+    @Override
+    public void addEmmet(String emmet) {
+        String[] parts = emmet.split("(?=\\+)|(?=>)|(?=\\^+)",2);
+        if(parts[0].charAt(0)=='^') {
+            parts[0] = parts[0].substring(1);
+        }
+        List<BlockElement> blockElements = stringToElement(parts[0]);
+            for(BlockElement blockElement : blockElements) {
+                this.appendChild(blockElement);
+                if(parts.length > 1 ) {
+                    if(parts[1].charAt(0) == '>') {
+                        blockElement.addEmmet(parts[1].substring(1));
+                    }
+                    if(parts[1].charAt(0) == '+') {
+                        this.addEmmet(parts[1].substring(1));
+                    }
+                    if(parts[1].charAt(0) == '^') {
+                    Element parenttemp = this;
+                    int timesIdented = 0;
+                            while(parts[1].charAt(timesIdented) == '^') {
+                                timesIdented++;
+                                if(parenttemp.parentNode() != null) {
+                                    parenttemp = parenttemp.parentNode();
+                                }
+                        }
+                         System.out.println(parts[1].substring(timesIdented));
 
+                    ((BlockElement) parenttemp).addEmmet(parts[1].substring(timesIdented));
+                    }
+                }
+            }
+    }
+
+    /**
+     * Creates a List of {@link BlockElement} passing a string throw a regex matcher, dividing the functionality of each character.
+     * @param emmet - String
+     * @return a list of {@link BlockElement}
+     */
     private List<BlockElement> stringToElement(String emmet) {
         BlockElement block;
         List<BlockElement> result = new ArrayList<BlockElement>();
@@ -312,6 +358,7 @@ public class BlockElement extends Element implements IBlockElement<BlockElement,
                 for(String clas : block.classList()) {
                     block.replaceClass(clas, clas.replace("$", String.valueOf(repeatitions)));
                 }
+                block.setPersonalizedAt(block.getPersonalizedAt().replace("$", String.valueOf(repeatitions)));
                 if(repeatitions>1) {
                     String newEmmet =emmet.replace(eMatcher.group(7).substring(1), String.valueOf(repeatitions-1));
                     List<BlockElement> blockEmmet = stringToElement(newEmmet);
@@ -326,9 +373,6 @@ public class BlockElement extends Element implements IBlockElement<BlockElement,
 
     @Override
     public String toStringIndented (int indentation) {
-        if(getPersonalizedAt() == null) {
-            setPersonalizedAt("");
-        }
         StringBuilder str = new StringBuilder();
         String start =  "<" + getName() + idToString() + classToString() + getPersonalizedAt() + ">";
         String close =  "</" + getName() + ">";

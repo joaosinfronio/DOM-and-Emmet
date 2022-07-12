@@ -1,10 +1,12 @@
 package pt.ualg;
 
+/**
+ * Class representing an Image {@link BlockElement} without closing de block
+ */
 public class Image extends BlockElement {
 
     public Image(String name) {
         super(name);
-        //TODO Auto-generated constructor stub
     }
 
     @Override
@@ -25,5 +27,4 @@ public class Image extends BlockElement {
         }
         return str.toString() + getIDENT().repeat(indentation) + close;
     }
-
 }
