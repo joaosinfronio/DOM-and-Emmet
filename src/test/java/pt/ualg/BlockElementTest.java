@@ -12,6 +12,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class BlockElementTest {
+
+
     Document document;
     Document document1;
     Document document2;
@@ -25,8 +27,9 @@ public class BlockElementTest {
     BlockElement adr;
     String emmet1;
 
+
     @BeforeEach
-    void setUp()  {
+    void setUp() throws IOException  {
         document = new Document("Document");
         document1 = new Document("Document1");
         document2 = new Document("Document2");
@@ -46,7 +49,7 @@ public class BlockElementTest {
         assertTrue(html.classList().isEmpty());
         html.addClass("test");
         assertTrue(html.classList().indexOf("test")!=-1);
-        assertEquals(" class = \"test\"", html.classToString());
+        assertEquals(" class=\"test\"", html.classToString());
     }
 
     @Test
@@ -55,33 +58,33 @@ public class BlockElementTest {
         assertEquals(document.getChildren().get(0).toString(), html.toString());
         document1.addEmmet("html>div");
         document2.addEmmet("html>div.class.class-$*1");
-        assertEquals("<html>\n"+ document.getIDENT()+"<div class = \"class class-1\"></div>\n</html>\n", document2.toString());
+        assertEquals("<html>\n"+ document.getIDENT()+"<div class=\"class class-1\"></div>\n</html>\n", document2.toString());
         document3.addEmmet("html>div#id-$*2");
-        assertEquals("<html>\n"+ document.getIDENT()+"<div id = \"id-1\"></div>\n"+ document.getIDENT()+"<div id = \"id-2\"></div>\n</html>\n", document3.toString());
+        assertEquals("<html>\n"+ document.getIDENT()+"<div id=\"id-1\"></div>\n"+ document.getIDENT()+"<div id=\"id-2\"></div>\n</html>\n", document3.toString());
         document4.addEmmet(emmet1);
         String a =
-        "<html id = \"wdsd-\" class = \"clasa classb-- classc- classd-\" diesable>\n"
+        "<html id=\"wdsd-\" class=\"clasa classb-- classc- classd-\" diesable>\n"
         + document.getIDENT()+ "Hello\n"
-        + document.getIDENT()+ "<diversao id = \"e\" class = \"a\">\n"
-        + document.getIDENT()+document.getIDENT()+"<span class = \"clasa classb\">\n"
+        + document.getIDENT()+ "<diversao id=\"e\" class=\"a\">\n"
+        + document.getIDENT()+document.getIDENT()+"<span class=\"clasa classb\">\n"
         + document.getIDENT()+document.getIDENT()+document.getIDENT() + "Hola\n"
         + document.getIDENT()+document.getIDENT()+  "</span>\n"
-        + document.getIDENT()+document.getIDENT()+"<div class = \"1\">\n"
-        + document.getIDENT()+document.getIDENT()+document.getIDENT() +"<p id = \"id\"></p>\n"
+        + document.getIDENT()+document.getIDENT()+"<div class=\"1\">\n"
+        + document.getIDENT()+document.getIDENT()+document.getIDENT() +"<p id=\"id\"></p>\n"
         + document.getIDENT()+document.getIDENT()+"</div>\n"
         + document.getIDENT()+"</diversao>\n"+
         "</html>\n"+
         "<pai>\n"
-        + document.getIDENT()+"<q id = \"1\" class = \"1\"></q>\n"
-        + document.getIDENT()+"<q id = \"2\" class = \"2\"></q>\n"
-        + document.getIDENT()+"<q id = \"3\" class = \"3\"></q>\n"
-        + document.getIDENT()+"<q id = \"4\" class = \"4\"></q>\n"
-        + document.getIDENT()+"<q id = \"5\" class = \"5\"></q>\n"
-        + document.getIDENT()+"<q id = \"6\" class = \"6\"></q>\n"
-        + document.getIDENT()+"<q id = \"7\" class = \"7\"></q>\n"
-        + document.getIDENT()+"<q id = \"8\" class = \"8\"></q>\n"
-        + document.getIDENT()+"<q id = \"9\" class = \"9\"></q>\n"
-        + document.getIDENT()+"<q id = \"10\" class = \"10\"></q>\n"+
+        + document.getIDENT()+"<q id=\"1\" class=\"1\"></q>\n"
+        + document.getIDENT()+"<q id=\"2\" class=\"2\"></q>\n"
+        + document.getIDENT()+"<q id=\"3\" class=\"3\"></q>\n"
+        + document.getIDENT()+"<q id=\"4\" class=\"4\"></q>\n"
+        + document.getIDENT()+"<q id=\"5\" class=\"5\"></q>\n"
+        + document.getIDENT()+"<q id=\"6\" class=\"6\"></q>\n"
+        + document.getIDENT()+"<q id=\"7\" class=\"7\"></q>\n"
+        + document.getIDENT()+"<q id=\"8\" class=\"8\"></q>\n"
+        + document.getIDENT()+"<q id=\"9\" class=\"9\"></q>\n"
+        + document.getIDENT()+"<q id=\"10\" class=\"10\"></q>\n"+
         "</pai>\n";
         /*
             <html id = "wdsd-" class = "clasa classb-- classc- classd-" diesable>
@@ -175,6 +178,7 @@ public class BlockElementTest {
         assertTrue(document.getElementsByClassName("class").contains(p));
         assertTrue(document.getElementsByClassName("class").contains(span));
         assertFalse(document.getElementsByClassName("class").contains(div));
+        assertEquals(document.getElementsByClassName("class").size(), 2);
     }
 
     @Test
@@ -251,9 +255,7 @@ public class BlockElementTest {
 
     @Test
     void testAbreviations() throws IOException {
-        document.readAbbFile("D:\\UpSkill\\GitHub\\DOM-and-Emmet\\abbreviations.txt");
         document.addEmmet("adr+art");
-        document1.readAbbFile("D:\\UpSkill\\GitHub\\DOM-and-Emmet\\abbreviations.txt");
         document1.appendChild(adr);
         assertTrue(document.getChildren().size()>=0);
         assertEquals(((BlockElement) document.firstChild()).getName(),"address");

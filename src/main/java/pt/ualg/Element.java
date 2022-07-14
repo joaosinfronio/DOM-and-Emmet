@@ -1,7 +1,5 @@
 package pt.ualg;
 
-import java.io.IOException;
-
 /**
  * Class representation of a {@link Element} that implements{@link IElement} can be appended to a parent {@link BlockElement}, as a Identation for the String representation.
  */
@@ -29,7 +27,7 @@ public class Element implements IElement <BlockElement, Element> {
 
     @Override
     public String toString() {
-        return toStringIndented(0);
+        return this.toStringIndented(0);
     }
 }
 

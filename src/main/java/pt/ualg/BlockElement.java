@@ -18,13 +18,13 @@ import java.util.regex.Pattern;
  * can have an id, a name, a Collection of classes, a personalized attribute, a Collection of events for this {@link BlockElement}, a Collection of abbreviations and a Collection of children.
  */
 public class BlockElement extends Element implements IBlockElement<BlockElement,Element> {
+    private static Map<String,String> abbreviations = new HashMap<String, String>();
     private String id;
     private String name;
+    private String personalizedAt;
     private List<Element> children = new ArrayList<Element>();
     private List<String> classList = new ArrayList<String>();
-    private String personalizedAt;
     private Map<String, List<Consumer<BlockElement>>> events = new HashMap<String, List<Consumer<BlockElement>>>();
-    private Map<String,String> abbreviations = new HashMap<String, String>();
 
     /**
      * Creates a new block element with the given name.
@@ -37,6 +37,24 @@ public class BlockElement extends Element implements IBlockElement<BlockElement,
         }
     }
 
+    /**
+     * Static Block that reads a file containing a list of abbreviations
+     * @throws IOException
+     */
+    static {
+        String path = System.getProperty("user.dir") + "\\abbreviations.txt";
+        File abb = new File(path);
+        try (BufferedReader br = new BufferedReader(new FileReader(abb))) {
+            String st;
+            while((st = br.readLine()) != null) {
+                String [] parts = st.split(",");
+                abbreviations.put(parts[0], parts[1]);
+            }
+        }  catch (IOException e) {
+            //do nothing
+        }
+    }
+
     public String getId() {
         if(id == null) {
             return "";
@@ -44,22 +62,26 @@ public class BlockElement extends Element implements IBlockElement<BlockElement,
         return id;
     }
 
-    public void setId(String id) {
+    protected void setId(String id) {
         this.id = id;
     }
 
-    private String idToString() {
+    /**
+     * String representation of id in the format for the {@link BlockElement} representation.
+     * @return a string of the id
+     */
+    protected String idToString() {
         if (getId().equals("")) {
             return getId();
         }
-        return " id = \"" + id + "\"";
+        return " id=\"" + id + "\"";
     }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
+    protected void setName(String name) {
         this.name = name;
     }
 
@@ -88,7 +110,7 @@ public class BlockElement extends Element implements IBlockElement<BlockElement,
         return " "+ personalizedAt;
     }
 
-    public void setPersonalizedAt(String personalizedAT) {
+    protected void setPersonalizedAt(String personalizedAT) {
         this.personalizedAt = personalizedAT;
     }
 
@@ -132,12 +154,6 @@ public class BlockElement extends Element implements IBlockElement<BlockElement,
     public void appendChild(Element e) {
         e.setParent(this);
         children.add(e);
-        if(parentNode() != null && parentNode().getAbbreviations()!=null) {
-            this.abbreviations = parentNode().getAbbreviations();
-        }
-        if (e instanceof BlockElement && this.abbreviations.containsKey(((BlockElement) e).getName())) {
-            ((BlockElement) e).setName(abbreviations.get(((BlockElement) e).getName()));
-        }
     }
 
     @Override
@@ -217,9 +233,9 @@ public class BlockElement extends Element implements IBlockElement<BlockElement,
      * Makes the class String format for the BlockElement representation.
      * @return String class representation
      */
-    public String classToString() {
+    protected String classToString() {
         StringBuilder str = new StringBuilder();
-        str.append(" class = \"");
+        str.append(" class=\"");
         if(classList.isEmpty()) {
             return "";
         }
@@ -257,25 +273,6 @@ public class BlockElement extends Element implements IBlockElement<BlockElement,
         if(events.containsKey(name)) {
             for(Consumer<BlockElement> listener : this.events.get(name)) {
                 listener.accept(this);
-            }
-        }
-    }
-
-    /**
-     * Reads a file containing a list of abbreviations
-     * @param file
-     * @throws IOException
-     */
-    public void readAbbFile(String file) throws IOException {
-        File abb = new File(file);
-        try (BufferedReader br = new BufferedReader(new FileReader(abb))) {
-            String st;
-            while((st = br.readLine()) != null) {
-                String [] parts = st.split(",");
-                abbreviations.put(parts[0], parts[1]);
-            }
-            if(abbreviations.containsKey(this.name)) {
-                this.name=abbreviations.get(this.name);
             }
         }
     }
@@ -382,27 +379,20 @@ public class BlockElement extends Element implements IBlockElement<BlockElement,
     }
 
     @Override
-    public String toStringIndented (int indentation) {
+    public String toStringIndented(int indentation) {
         StringBuilder str = new StringBuilder();
-        String start =  "<" + getName() + idToString() + classToString() + getPersonalizedAt() + ">";
-        String close =  "</" + getName() + ">";
-        if(children.isEmpty()) {
-            str.append(getIDENT().repeat(indentation) + start);
-            return str.toString() + close + "\n";
+        String start =  "<" +  this.getName() + this.idToString() + this.classToString() + this.getPersonalizedAt() + ">";
+        String close =  "</" + this.getName() + ">";
+        if(this.getChildren().isEmpty()) {
+            str.append(super.toStringIndented(indentation) + start);
+            return str.toString()+ close + "\n";
+
         }else {
-            str.append(getIDENT().repeat(indentation) + start + "\n");
-            for (Element child : children) {
-                str.append(child.toStringIndented(indentation + 1));
+            str.append(super.toStringIndented(indentation) + start + "\n");
+            for (Element child :this.getChildren()) {
+                str.append(child.toStringIndented(indentation+1));
             }
         }
-        return str.toString() + getIDENT().repeat(indentation)+close +"\n";
-    }
-
-    @Override
-    public String toString() {
-        return toStringIndented(0) ;
+        return str.toString() + super.toStringIndented(indentation) + close +"\n";
     }
 }
-
-
-
